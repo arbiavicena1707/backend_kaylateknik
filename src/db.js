@@ -88,6 +88,12 @@ async function initDb() {
     // Column might already exist
   }
 
+  try {
+    await db.runAsync(`ALTER TABLE pengaturan_perusahaan ADD COLUMN logo_standar_path TEXT`);
+  } catch (e) {
+    // Column might already exist
+  }
+
   // Table Template Nota / Penawaran
   await db.runAsync(`
     CREATE TABLE IF NOT EXISTS template (

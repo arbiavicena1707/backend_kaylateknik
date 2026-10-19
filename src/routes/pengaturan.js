@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
-    const prefix = file.fieldname === 'logo' ? 'logo_' : 'ttd_';
+    const prefix = file.fieldname === 'logo' ? 'logo_banner_' : file.fieldname === 'logo_standar' ? 'logo_standar_' : 'ttd_';
     cb(null, `${prefix}${Date.now()}${ext}`);
   }
 });
@@ -128,6 +128,33 @@ router.post('/ttd', authenticateToken, upload.single('ttd'), async (req, res) =>
     `, [ttdUrl]);
 
     res.json({ success: true, message: 'Tanda tangan berhasil diunggah.', ttd_path: ttdUrl });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/pengaturan/logo-standar
+router.post('/logo-standar', authenticateToken, upload.single('logo_standar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Tidak ada file logo standar yang diunggah.' });
+    }
+
+    const current = await db.getAsync(`SELECT logo_standar_path FROM pengaturan_perusahaan LIMIT 1`);
+    if (current && current.logo_standar_path) {
+      const oldFile = path.join(uploadsDir, path.basename(current.logo_standar_path));
+      if (fs.existsSync(oldFile)) {
+        try { fs.unlinkSync(oldFile); } catch (e) { /* ignore */ }
+      }
+    }
+
+    const logoStandarUrl = `/uploads/${req.file.filename}`;
+    await db.runAsync(`
+      UPDATE pengaturan_perusahaan SET logo_standar_path = ?, diperbarui_pada = CURRENT_TIMESTAMP
+      WHERE id = (SELECT id FROM pengaturan_perusahaan LIMIT 1)
+    `, [logoStandarUrl]);
+
+    res.json({ success: true, message: 'Logo standar berhasil diunggah.', logo_standar_path: logoStandarUrl });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
