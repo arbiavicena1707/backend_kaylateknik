@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+.env.local
+
+# Database SQLite
+database.sqlite
+*.sqlite
+*.sqlite3
+*.db
+
+# Dynamic Uploads (folder dipertahankan dengan .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# Output PDF / Excel Pengujian
+*.pdf
+test_output.pdf
+*.xlsx
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
