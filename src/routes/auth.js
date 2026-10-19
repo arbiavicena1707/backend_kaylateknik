@@ -59,6 +59,27 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+// PUT /api/auth/profil - update nama & username
+router.put('/profil', authenticateToken, async (req, res) => {
+  try {
+    const { nama, username } = req.body;
+    if (!nama || !username) {
+      return res.status(400).json({ success: false, message: 'Nama dan username wajib diisi.' });
+    }
+
+    // Cek apakah username sudah dipakai pengguna lain
+    const existing = await db.getAsync(`SELECT id FROM pengguna WHERE username = ? AND id != ?`, [username, req.user.id]);
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Username sudah digunakan.' });
+    }
+
+    await db.runAsync(`UPDATE pengguna SET nama = ?, username = ? WHERE id = ?`, [nama, username, req.user.id]);
+    res.json({ success: true, message: 'Profil berhasil diperbarui.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // PUT /api/auth/password
 router.put('/password', authenticateToken, async (req, res) => {
   try {
