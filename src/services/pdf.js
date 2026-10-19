@@ -42,7 +42,13 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       // 1. KOP SURAT (Dua Mode: 'banner' / Logo Besar & 'standar' / Versi Sekarang)
       let topY = 36;
       let hasLogo = false;
-      const logoFilename = pengaturan.logo_path ? path.basename(pengaturan.logo_path) : null;
+
+      // Pilih logo sesuai mode kop PDF dengan fallback
+      const selectedLogoPath = mode === 'standar'
+        ? (pengaturan.logo_standar_path || pengaturan.logo_path)
+        : (pengaturan.logo_path || pengaturan.logo_standar_path);
+
+      const logoFilename = selectedLogoPath ? path.basename(selectedLogoPath) : null;
       const fullLogoPath = logoFilename ? path.join(uploadsDir, logoFilename) : null;
 
       if (mode === 'standar') {
