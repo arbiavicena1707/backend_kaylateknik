@@ -163,7 +163,9 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       }
 
       // 2. HEADER DOKUMEN (Nomor, Tanggal, Kepada)
-      const docTypeTitle = nota.jenis === 'penawaran' ? 'SURAT PENAWARAN HARGA' : 'NOTA TAGIHAN';
+      const docTypeTitle = (nota.judul_dokumen && nota.judul_dokumen.trim())
+        ? nota.judul_dokumen.trim().toUpperCase()
+        : (nota.jenis === 'penawaran' ? 'SURAT PENAWARAN HARGA' : (nota.jenis ? nota.jenis.toUpperCase() : 'NOTA TAGIHAN'));
       
       doc.fillColor(textDark).fontSize(12).font('Helvetica-Bold')
          .text(docTypeTitle, 40, topY, { align: 'center', width: contentWidth });
@@ -214,7 +216,7 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         nama: 225,
         qty: 65,
         harga: 95,
-        total: 100
+        total: 40 + contentWidth - 455 // Pastikan pas hingga tepi kanan tabel (100.28 pt)
       };
 
       // Header row
@@ -255,8 +257,6 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       // 4. RINGKASAN TOTAL & PPN
       const summaryW = 210;
       const summaryX = 40 + contentWidth - summaryW;
-      const summaryLabelW = 95;
-      const summaryValW = 110;
 
       const renderSummaryRow = (label, value, isBold = false, isHighlight = false) => {
         const rowH = 18;
@@ -269,8 +269,10 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
            .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
            .fontSize(8.5);
 
-        doc.text(label, summaryX + 6, topY + 4.5, { width: summaryLabelW });
-        doc.text(value, summaryX + summaryLabelW, topY + 4.5, { width: summaryValW - 6, align: 'right' });
+        // Label summary rata kiri
+        doc.text(label, summaryX + 8, topY + 4.5, { width: (colX.total - summaryX) - 14, align: 'left' });
+        // Angka summary sejajar presisi 100% lurus dengan kolom Total baris item tabel
+        doc.text(value, colX.total, topY + 4.5, { width: colW.total - 6, align: 'right' });
         topY += rowH;
       };
 

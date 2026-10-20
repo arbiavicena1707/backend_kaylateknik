@@ -98,8 +98,9 @@ async function initDb() {
   await db.runAsync(`
     CREATE TABLE IF NOT EXISTS template (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      jenis TEXT NOT NULL, -- 'penawaran' atau 'nota'
+      jenis TEXT NOT NULL, -- 'penawaran', 'nota', atau kustom
       nama_template TEXT NOT NULL,
+      judul_dokumen TEXT,
       perihal TEXT,
       kalimat_pembuka TEXT,
       keterangan TEXT, -- JSON array string atau teks baris
@@ -108,6 +109,12 @@ async function initDb() {
       dibuat_pada DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  try {
+    await db.runAsync(`ALTER TABLE template ADD COLUMN judul_dokumen TEXT`);
+  } catch (e) {
+    // Column might already exist
+  }
 
   // Table Master Barang & Jasa
   await db.runAsync(`
@@ -139,7 +146,8 @@ async function initDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nomor_surat TEXT NOT NULL,
       nomor_urut INTEGER,
-      jenis TEXT NOT NULL, -- 'penawaran' atau 'nota'
+      jenis TEXT NOT NULL, -- 'penawaran', 'nota', atau kustom
+      judul_dokumen TEXT,
       template_id INTEGER,
       tanggal TEXT NOT NULL,
       kota TEXT NOT NULL,
@@ -159,6 +167,12 @@ async function initDb() {
       dibuat_pada DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  try {
+    await db.runAsync(`ALTER TABLE nota ADD COLUMN judul_dokumen TEXT`);
+  } catch (e) {
+    // Column might already exist
+  }
 
   // Table Item Nota
   await db.runAsync(`

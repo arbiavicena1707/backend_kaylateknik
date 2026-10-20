@@ -134,7 +134,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
-      nomor_surat, nomor_urut, jenis, template_id, tanggal, kota,
+      nomor_surat, nomor_urut, jenis, judul_dokumen, template_id, tanggal, kota,
       penerima_nama, penerima_alamat, perihal,
       kalimat_pembuka, keterangan, kalimat_penutup,
       pakai_ppn, tarif_ppn, harga_include_ppn,
@@ -169,16 +169,17 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const notaResult = await db.runAsync(`
       INSERT INTO nota (
-        nomor_surat, nomor_urut, jenis, template_id, tanggal, kota,
+        nomor_surat, nomor_urut, jenis, judul_dokumen, template_id, tanggal, kota,
         penerima_nama, penerima_alamat, perihal,
         kalimat_pembuka, keterangan, kalimat_penutup,
         pakai_ppn, tarif_ppn, harga_include_ppn,
         subtotal, nilai_ppn, grand_total, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       finalNomorSurat,
       finalNomorUrut || null,
       jenis || 'penawaran',
+      judul_dokumen || null,
       template_id || null,
       tanggal || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
       kota || (settings ? settings.kota_default : 'Banyuwangi'),
@@ -233,7 +234,7 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const {
-      nomor_surat, jenis, template_id, tanggal, kota,
+      nomor_surat, jenis, judul_dokumen, template_id, tanggal, kota,
       penerima_nama, penerima_alamat, perihal,
       kalimat_pembuka, keterangan, kalimat_penutup,
       pakai_ppn, tarif_ppn, harga_include_ppn,
@@ -258,7 +259,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     await db.runAsync(`
       UPDATE nota SET
-        nomor_surat = ?, jenis = ?, template_id = ?, tanggal = ?, kota = ?,
+        nomor_surat = ?, jenis = ?, judul_dokumen = ?, template_id = ?, tanggal = ?, kota = ?,
         penerima_nama = ?, penerima_alamat = ?, perihal = ?,
         kalimat_pembuka = ?, keterangan = ?, kalimat_penutup = ?,
         pakai_ppn = ?, tarif_ppn = ?, harga_include_ppn = ?,
@@ -267,6 +268,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     `, [
       nomor_surat || existing.nomor_surat,
       jenis || existing.jenis,
+      judul_dokumen !== undefined ? judul_dokumen : existing.judul_dokumen,
       template_id || existing.template_id,
       tanggal || existing.tanggal,
       kota || existing.kota,
