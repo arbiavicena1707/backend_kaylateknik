@@ -314,6 +314,8 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         true
       );
 
+      topY += 12;
+
       // 5. KETERANGAN & REKENING
       let leftBottomY = topY;
       const leftColWidth = 280;

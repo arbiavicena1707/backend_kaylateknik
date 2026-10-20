@@ -334,16 +334,17 @@ router.post('/:id/duplikat', authenticateToken, async (req, res) => {
 
     const insertResult = await db.runAsync(`
       INSERT INTO nota (
-        nomor_surat, nomor_urut, jenis, template_id, tanggal, kota,
+        nomor_surat, nomor_urut, jenis, judul_dokumen, template_id, tanggal, kota,
         penerima_nama, penerima_alamat, perihal,
         kalimat_pembuka, keterangan, kalimat_penutup,
         pakai_ppn, tarif_ppn, harga_include_ppn,
         subtotal, nilai_ppn, grand_total, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Draft')
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Draft')
     `, [
       nextNomor.nomor_surat,
       nextNomor.nomor_urut,
       original.jenis,
+      original.judul_dokumen || null,
       original.template_id,
       nowFormatted,
       settings ? settings.kota_default : original.kota,
