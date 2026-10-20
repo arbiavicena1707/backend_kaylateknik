@@ -163,8 +163,10 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       }
 
       // 2. HEADER DOKUMEN (Nomor, Tanggal, Kepada)
-      const docTypeTitle = (nota.judul_dokumen && nota.judul_dokumen.trim())
-        ? nota.judul_dokumen.trim().toUpperCase()
+      const effectiveTitle = (nota.judul_dokumen && nota.judul_dokumen.trim())
+        || (nota.template_judul_dokumen && nota.template_judul_dokumen.trim());
+      const docTypeTitle = effectiveTitle
+        ? effectiveTitle.trim().toUpperCase()
         : (nota.jenis === 'penawaran' ? 'SURAT PENAWARAN HARGA' : (nota.jenis ? nota.jenis.toUpperCase() : 'NOTA TAGIHAN'));
 
       doc.fillColor(textDark).fontSize(12).font('Helvetica-Bold')

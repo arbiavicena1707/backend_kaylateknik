@@ -118,7 +118,12 @@ router.get('/next-number', authenticateToken, async (req, res) => {
 // GET /api/nota/:id
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const nota = await db.getAsync(`SELECT * FROM nota WHERE id = ?`, [req.params.id]);
+    const nota = await db.getAsync(`
+      SELECT n.*, t.judul_dokumen AS template_judul_dokumen
+      FROM nota n
+      LEFT JOIN template t ON n.template_id = t.id
+      WHERE n.id = ?
+    `, [req.params.id]);
     if (!nota) {
       return res.status(404).json({ success: false, message: 'Nota tidak ditemukan.' });
     }
@@ -403,7 +408,12 @@ router.get('/:id/pdf', async (req, res) => {
       token = req.query.token;
     }
 
-    const nota = await db.getAsync(`SELECT * FROM nota WHERE id = ?`, [req.params.id]);
+    const nota = await db.getAsync(`
+      SELECT n.*, t.judul_dokumen AS template_judul_dokumen
+      FROM nota n
+      LEFT JOIN template t ON n.template_id = t.id
+      WHERE n.id = ?
+    `, [req.params.id]);
     if (!nota) {
       return res.status(404).json({ success: false, message: 'Nota tidak ditemukan.' });
     }
