@@ -255,8 +255,13 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       });
 
       // 4. RINGKASAN TOTAL & PPN
-      const summaryW = 210;
-      const summaryX = 40 + contentWidth - summaryW;
+      // summaryX mulai persis di batas kiri kolom Total agar label & value kotak terkontrol
+      const summaryLabelW = 110; // lebar kolom label (kiri)
+      // Total lebar box = label + nilai; nilai kolom sejajar presisi dengan kolom Total item
+      const summaryValX = colX.total;             // X nilai = colX.total (sama persis dengan item rows)
+      const summaryValW = colW.total - 6;          // lebar nilai = colW.total - 6 (sama persis)
+      const summaryX = summaryValX - summaryLabelW; // kotak summary mulai di kiri label
+      const summaryW = summaryLabelW + summaryValW + 6; // total lebar box
 
       const renderSummaryRow = (label, value, isBold = false, isHighlight = false) => {
         const rowH = 18;
@@ -269,10 +274,10 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
            .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
            .fontSize(8.5);
 
-        // Label summary rata kiri
-        doc.text(label, summaryX + 8, topY + 4.5, { width: (colX.total - summaryX) - 14, align: 'left' });
-        // Angka summary sejajar presisi 100% lurus dengan kolom Total baris item tabel
-        doc.text(value, colX.total, topY + 4.5, { width: colW.total - 6, align: 'right' });
+        // Label di sisi kiri box
+        doc.text(label, summaryX + 6, topY + 4.5, { width: summaryLabelW - 10, align: 'left' });
+        // Angka SEJAJAR PRESISI dengan kolom Total baris item tabel
+        doc.text(value, summaryValX, topY + 4.5, { width: summaryValW, align: 'right' });
         topY += rowH;
       };
 
