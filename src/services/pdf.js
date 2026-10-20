@@ -67,15 +67,15 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         const headerTextWidth = hasLogo ? contentWidth - 75 : contentWidth;
 
         doc.fillColor(orangeDark)
-           .fontSize(16)
-           .font('Helvetica-Bold')
-           .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), headerTextX, topY, { width: headerTextWidth });
+          .fontSize(16)
+          .font('Helvetica-Bold')
+          .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), headerTextX, topY, { width: headerTextWidth });
 
         doc.fillColor(textDark)
-           .fontSize(9)
-           .font('Helvetica')
-           .moveDown(0.25)
-           .text(pengaturan.alamat || 'Banyuwangi, Jawa Timur', { width: headerTextWidth });
+          .fontSize(9)
+          .font('Helvetica')
+          .moveDown(0.25)
+          .text(pengaturan.alamat || 'Banyuwangi, Jawa Timur', { width: headerTextWidth });
 
         const kontakText = [
           pengaturan.no_hp ? `HP/WA: ${pengaturan.no_hp}` : '',
@@ -84,8 +84,8 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
 
         if (kontakText) {
           doc.fillColor(textMuted)
-             .fontSize(8.5)
-             .text(kontakText, { width: headerTextWidth });
+            .fontSize(8.5)
+            .text(kontakText, { width: headerTextWidth });
         }
 
         topY = Math.max(doc.y + 8, topY + 68);
@@ -112,31 +112,31 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         if (!hasLogo) {
           // Jika belum unggah logo, tampilkan nama usaha besar & tegas
           doc.fillColor(orangeDark)
-             .fontSize(20)
-             .font('Helvetica-Bold')
-             .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), 40, topY, { width: leftColWidth });
-          
+            .fontSize(20)
+            .font('Helvetica-Bold')
+            .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), 40, topY, { width: leftColWidth });
+
           doc.fillColor(textDark)
-             .fontSize(8.5)
-             .font('Helvetica')
-             .moveDown(0.2)
-             .text('BENGKEL BUBUT, LAS & REKAYASA TEKNIK', { width: leftColWidth });
+            .fontSize(8.5)
+            .font('Helvetica')
+            .moveDown(0.2)
+            .text('BENGKEL BUBUT, LAS & REKAYASA TEKNIK', { width: leftColWidth });
         }
 
         // Kolom Kanan: Nama Tempat, Alamat, dan Kontak
         let rightY = topY;
         doc.fillColor(orangeDark)
-           .fontSize(11)
-           .font('Helvetica-Bold')
-           .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), rightColX, rightY, { width: rightColWidth, align: 'right' });
-        
+          .fontSize(11)
+          .font('Helvetica-Bold')
+          .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), rightColX, rightY, { width: rightColWidth, align: 'right' });
+
         rightY = doc.y + 2;
 
         if (pengaturan.alamat) {
           doc.fillColor(textDark)
-             .fontSize(8.5)
-             .font('Helvetica')
-             .text(pengaturan.alamat, rightColX, rightY, { width: rightColWidth, align: 'right' });
+            .fontSize(8.5)
+            .font('Helvetica')
+            .text(pengaturan.alamat, rightColX, rightY, { width: rightColWidth, align: 'right' });
           rightY = doc.y + 2;
         }
 
@@ -147,9 +147,9 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
 
         if (kontakText) {
           doc.fillColor(textMuted)
-             .fontSize(8)
-             .font('Helvetica')
-             .text(kontakText, rightColX, rightY, { width: rightColWidth, align: 'right' });
+            .fontSize(8)
+            .font('Helvetica')
+            .text(kontakText, rightColX, rightY, { width: rightColWidth, align: 'right' });
           rightY = doc.y;
         }
 
@@ -166,10 +166,10 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       const docTypeTitle = (nota.judul_dokumen && nota.judul_dokumen.trim())
         ? nota.judul_dokumen.trim().toUpperCase()
         : (nota.jenis === 'penawaran' ? 'SURAT PENAWARAN HARGA' : (nota.jenis ? nota.jenis.toUpperCase() : 'NOTA TAGIHAN'));
-      
+
       doc.fillColor(textDark).fontSize(12).font('Helvetica-Bold')
-         .text(docTypeTitle, 40, topY, { align: 'center', width: contentWidth });
-      
+        .text(docTypeTitle, 40, topY, { align: 'center', width: contentWidth });
+
       topY = doc.y + 8;
 
       // Left: Nomor & Perihal
@@ -199,7 +199,7 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       // Kalimat Pembuka
       if (nota.kalimat_pembuka) {
         doc.font('Helvetica').fontSize(9).fillColor(textDark)
-           .text(nota.kalimat_pembuka, 40, topY, { width: contentWidth, align: 'justify' });
+          .text(nota.kalimat_pembuka, 40, topY, { width: contentWidth, align: 'justify' });
         topY = doc.y + 10;
       }
 
@@ -254,43 +254,65 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         topY += rowHeight;
       });
 
+
       // 4. RINGKASAN TOTAL & PPN
-      // summaryX mulai persis di batas kiri kolom Total agar label & value kotak terkontrol
-      const summaryLabelW = 110; // lebar kolom label (kiri)
-      // Total lebar box = label + nilai; nilai kolom sejajar presisi dengan kolom Total item
-      const summaryValX = colX.total;             // X nilai = colX.total (sama persis dengan item rows)
-      const summaryValW = colW.total - 6;          // lebar nilai = colW.total - 6 (sama persis)
-      const summaryX = summaryValX - summaryLabelW; // kotak summary mulai di kiri label
-      const summaryW = summaryLabelW + summaryValW + 6; // total lebar box
+      // Samakan batas kanan angka dengan kolom Total barang
+      const tableRight = 40 + contentWidth;
+      const summaryLabelW = 110;
+      const summaryRight = tableRight;
+      const summaryValueW = colW.total;
+      const summaryValueX = summaryRight - summaryValueW;
+      const summaryX = summaryValueX - summaryLabelW;
+      const summaryW = summaryLabelW + summaryValueW;
 
       const renderSummaryRow = (label, value, isBold = false, isHighlight = false) => {
         const rowH = 18;
+
         if (isHighlight) {
           doc.rect(summaryX, topY, summaryW, rowH).fill(lightBg);
         }
-        doc.rect(summaryX, topY, summaryW, rowH).strokeColor(borderGrey).lineWidth(0.5).stroke();
+
+        doc.rect(summaryX, topY, summaryW, rowH)
+          .strokeColor(borderGrey)
+          .lineWidth(0.5)
+          .stroke();
 
         doc.fillColor(isHighlight ? orangeDark : textDark)
-           .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
-           .fontSize(8.5);
+          .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
+          .fontSize(8.5);
 
-        // Label di sisi kiri box
-        doc.text(label, summaryX + 6, topY + 4.5, { width: summaryLabelW - 10, align: 'left' });
-        // Angka SEJAJAR PRESISI dengan kolom Total baris item tabel
-        doc.text(value, summaryValX, topY + 4.5, { width: summaryValW, align: 'right' });
+        doc.text(
+          label,
+          summaryX + 6,
+          topY + 4.5,
+          { width: summaryLabelW - 10, align: 'left' }
+        );
+
+        doc.text(
+          value,
+          summaryValueX,
+          topY + 4.5,
+          { width: summaryValueW - 6, align: 'right' }
+        );
+
         topY += rowH;
       };
 
       renderSummaryRow('Total', formatRupiah(nota.subtotal), true);
 
       if (nota.pakai_ppn) {
-        const ppnLabel = `PPN ${nota.tarif_ppn || 11}%` + (nota.harga_include_ppn ? ' (Include)' : '');
+        const ppnLabel = `PPN ${nota.tarif_ppn || 11}%` +
+          (nota.harga_include_ppn ? ' (Include)' : '');
+
         renderSummaryRow(ppnLabel, formatRupiah(nota.nilai_ppn));
       }
 
-      renderSummaryRow('Grand Total', formatRupiah(nota.grand_total), true, true);
-
-      topY += 12;
+      renderSummaryRow(
+        'Grand Total',
+        formatRupiah(nota.grand_total),
+        true,
+        true
+      );
 
       // 5. KETERANGAN & REKENING
       let leftBottomY = topY;
@@ -307,7 +329,7 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
 
       if (Array.isArray(keteranganList) && keteranganList.length > 0) {
         doc.font('Helvetica-Bold').fontSize(8.5).fillColor(textDark)
-           .text('Keterangan & Ketentuan:', 40, leftBottomY);
+          .text('Keterangan & Ketentuan:', 40, leftBottomY);
         leftBottomY += 12;
 
         keteranganList.forEach((itemText) => {
@@ -326,7 +348,7 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         doc.rect(40, leftBottomY, leftColWidth, bankBoxH).strokeColor(borderGrey).lineWidth(0.5).stroke();
 
         doc.fillColor(textDark).font('Helvetica-Bold').fontSize(8)
-           .text('INFORMASI PEMBAYARAN / REKENING:', 48, leftBottomY + 6);
+          .text('INFORMASI PEMBAYARAN / REKENING:', 48, leftBottomY + 6);
 
         doc.font('Helvetica').fontSize(8).fillColor(textDark);
         doc.text(`Bank       : ${pengaturan.nama_bank || '-'}`, 48, leftBottomY + 18);
@@ -345,7 +367,7 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       sigY += 12;
 
       doc.font('Helvetica-Bold')
-         .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), sigX, sigY, { width: sigW, align: 'center' });
+        .text((pengaturan.nama_usaha || 'MIKAYLA TEKNIK').toUpperCase(), sigX, sigY, { width: sigW, align: 'center' });
       sigY += 14;
 
       let hasTtd = false;
@@ -367,18 +389,18 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
       }
 
       doc.font('Helvetica-Bold').fontSize(9).fillColor(textDark)
-         .text(`( ${pengaturan.nama_penanda_tangan || 'Ahmad Hidayat'} )`, sigX, sigY, { width: sigW, align: 'center', underline: true });
+        .text(`( ${pengaturan.nama_penanda_tangan || 'Ahmad Hidayat'} )`, sigX, sigY, { width: sigW, align: 'center', underline: true });
       sigY += 13;
 
       if (pengaturan.jabatan_penanda_tangan) {
         doc.font('Helvetica').fontSize(8).fillColor(textMuted)
-           .text(pengaturan.jabatan_penanda_tangan, sigX, sigY, { width: sigW, align: 'center' });
+          .text(pengaturan.jabatan_penanda_tangan, sigX, sigY, { width: sigW, align: 'center' });
       }
 
       const finalBottomY = Math.max(leftBottomY, sigY + 16);
       if (nota.kalimat_penutup) {
         doc.font('Helvetica-Oblique').fontSize(8).fillColor(textMuted)
-           .text(nota.kalimat_penutup, 40, finalBottomY, { width: contentWidth, align: 'left' });
+          .text(nota.kalimat_penutup, 40, finalBottomY, { width: contentWidth, align: 'left' });
       }
 
       doc.end();
