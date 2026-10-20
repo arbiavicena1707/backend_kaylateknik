@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { initDb, uploadsDir } = require('./db');
+const { initDb, uploadsDir, dbType } = require('./db');
 
 const authRoutes = require('./routes/auth');
 const pengaturanRoutes = require('./routes/pengaturan');
@@ -35,6 +35,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     app: 'Aplikasi Nota & Surat Penawaran (Mikayla Teknik)',
+    database: dbType,
     time: new Date().toISOString()
   });
 });

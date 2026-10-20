@@ -10,6 +10,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Cek apakah konfigurasi MySQL aktif di .env
 const isMySQLConfigured = Boolean(process.env.DB_NAME && process.env.DB_USER);
+const dbType = isMySQLConfigured ? 'MySQL (phpMyAdmin)' : 'SQLite';
 
 let db = {};
 let pool = null;
@@ -405,5 +406,6 @@ async function initDb() {
 module.exports = {
   db,
   initDb,
-  uploadsDir
+  uploadsDir,
+  dbType
 };
