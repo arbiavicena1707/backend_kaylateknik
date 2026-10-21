@@ -71,13 +71,17 @@ async function start() {
     console.error('[Server Error] Gagal inisialisasi database:', dbError);
   }
 
-  // Server tetap berjalan agar TIDAK error 503 di cPanel Passenger
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`=======================================================`);
-    console.log(`Backend Nota & Penawaran berjalan di port ${PORT}`);
-    console.log(`http://localhost:${PORT}`);
-    console.log(`=======================================================`);
-  });
+  // Khusus cPanel / Passenger:
+  // Passenger membutuhkan module.exports = app;
+  // app.listen HANYA dijalankan jika file dipanggil langsung (bukan via Passenger)
+  if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Backend Nota berjalan di port ${PORT}`);
+    });
+  }
 }
 
 start();
+
+// MANDATORI UNTUK CPANEL PASSENGER:
+module.exports = app;
