@@ -47,7 +47,7 @@ app.get('/api/health', (req, res) => {
 
   res.json({
     status: 'ok',
-    app: 'Aplikasi Nota & Surat Penawaran (Mikayla Teknik)',
+    app: 'Aplikasi Nota & Surat Penawaran (Mikayla Teknik) , 21/10',
     database: dbType,
     time: new Date().toISOString()
   });
