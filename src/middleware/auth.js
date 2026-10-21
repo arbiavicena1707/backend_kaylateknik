@@ -1,6 +1,12 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_mikayla_nota_2024_key';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET || Buffer.byteLength(JWT_SECRET, 'utf8') < 32) {
+  throw new Error(
+    'JWT_SECRET wajib dikonfigurasi dan harus memiliki panjang minimal 32 byte.'
+  );
+}
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

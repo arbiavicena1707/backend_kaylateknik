@@ -6,6 +6,13 @@ const fs = require('fs');
 const { db, uploadsDir } = require('../db');
 const { authenticateToken } = require('../middleware/auth');
 
+const allowedImageTypes = new Map([
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp']
+]);
+
 // Multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -22,12 +29,13 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp/;
     const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.test(ext)) {
+    if (allowedImageTypes.get(ext) === file.mimetype) {
       cb(null, true);
     } else {
-      cb(new Error('Hanya file gambar (PNG, JPG, JPEG, WEBP) yang diperbolehkan.'));
+      const error = new Error('Hanya file PNG, JPG, JPEG, atau WEBP yang diperbolehkan.');
+      error.code = 'INVALID_IMAGE_TYPE';
+      cb(error);
     }
   }
 });
@@ -158,6 +166,28 @@ router.post('/logo-standar', authenticateToken, upload.single('logo_standar'), a
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+});
+
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      success: false,
+      message: 'Ukuran file gambar maksimal 5 MB.'
+    });
+  }
+
+  if (err.code === 'INVALID_IMAGE_TYPE') {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      success: false,
+      message: 'Unggahan gambar tidak valid.'
+    });
+  }
+
+  next(err);
 });
 
 module.exports = router;

@@ -12,6 +12,12 @@ if (!fs.existsSync(uploadsDir)) {
 const isMySQLConfigured = Boolean(process.env.DB_NAME && process.env.DB_USER);
 const dbType = isMySQLConfigured ? 'MySQL (phpMyAdmin)' : 'SQLite';
 
+if (process.env.NODE_ENV === 'production' && !isMySQLConfigured) {
+  throw new Error(
+    'DB_NAME dan DB_USER wajib dikonfigurasi untuk database MySQL di production.'
+  );
+}
+
 let db = {};
 let pool = null;
 let sqliteDb = null;
