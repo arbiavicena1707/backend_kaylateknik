@@ -316,6 +316,13 @@ function generateNotaPDF(nota, items, pengaturan, stream, mode = 'banner') {
         true
       );
 
+      // DP (Down Payment) rows
+      if (nota.pakai_dp && nota.persen_dp > 0) {
+        const dpLabel = `DP (${nota.persen_dp}%)`;
+        renderSummaryRow(dpLabel, formatRupiah(nota.nilai_dp));
+        renderSummaryRow('Sisa Pembayaran', formatRupiah(nota.sisa_pembayaran), true, true);
+      }
+
       topY += 12;
 
       // 5. KETERANGAN & REKENING

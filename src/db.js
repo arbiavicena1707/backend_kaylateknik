@@ -200,6 +200,10 @@ async function initDb() {
         \`subtotal\` DECIMAL(15,2) DEFAULT 0.00,
         \`nilai_ppn\` DECIMAL(15,2) DEFAULT 0.00,
         \`grand_total\` DECIMAL(15,2) DEFAULT 0.00,
+        \`pakai_dp\` TINYINT(1) DEFAULT 0,
+        \`persen_dp\` DECIMAL(5,2) DEFAULT 0.00,
+        \`nilai_dp\` DECIMAL(15,2) DEFAULT 0.00,
+        \`sisa_pembayaran\` DECIMAL(15,2) DEFAULT 0.00,
         \`status\` VARCHAR(50) DEFAULT 'Draft',
         \`dibuat_pada\` DATETIME DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -219,6 +223,17 @@ async function initDb() {
         CONSTRAINT \`fk_nota_item_nota\` FOREIGN KEY (\`nota_id\`) REFERENCES \`nota\` (\`id\`) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // MySQL migration: tambah kolom DP jika belum ada (untuk database lama)
+    const dpMigrations = [
+      `ALTER TABLE \`nota\` ADD COLUMN \`pakai_dp\` TINYINT(1) DEFAULT 0`,
+      `ALTER TABLE \`nota\` ADD COLUMN \`persen_dp\` DECIMAL(5,2) DEFAULT 0.00`,
+      `ALTER TABLE \`nota\` ADD COLUMN \`nilai_dp\` DECIMAL(15,2) DEFAULT 0.00`,
+      `ALTER TABLE \`nota\` ADD COLUMN \`sisa_pembayaran\` DECIMAL(15,2) DEFAULT 0.00`,
+    ];
+    for (const sql of dpMigrations) {
+      try { await db.runAsync(sql); } catch (e) { /* kolom sudah ada, skip */ }
+    }
 
     // Seed default Admin jika tabel kosong
     const existingUser = await db.getAsync(`SELECT * FROM pengguna WHERE username = ?`, ['admin']);
@@ -367,6 +382,10 @@ async function initDb() {
       subtotal REAL DEFAULT 0,
       nilai_ppn REAL DEFAULT 0,
       grand_total REAL DEFAULT 0,
+      pakai_dp INTEGER DEFAULT 0,
+      persen_dp REAL DEFAULT 0,
+      nilai_dp REAL DEFAULT 0,
+      sisa_pembayaran REAL DEFAULT 0,
       status TEXT DEFAULT 'Draft',
       dibuat_pada DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -374,6 +393,20 @@ async function initDb() {
 
   try {
     await db.runAsync(`ALTER TABLE nota ADD COLUMN judul_dokumen TEXT`);
+  } catch (e) {}
+
+  // DP (Down Payment) columns migration
+  try {
+    await db.runAsync(`ALTER TABLE nota ADD COLUMN pakai_dp INTEGER DEFAULT 0`);
+  } catch (e) {}
+  try {
+    await db.runAsync(`ALTER TABLE nota ADD COLUMN persen_dp REAL DEFAULT 0`);
+  } catch (e) {}
+  try {
+    await db.runAsync(`ALTER TABLE nota ADD COLUMN nilai_dp REAL DEFAULT 0`);
+  } catch (e) {}
+  try {
+    await db.runAsync(`ALTER TABLE nota ADD COLUMN sisa_pembayaran REAL DEFAULT 0`);
   } catch (e) {}
 
   await db.runAsync(`

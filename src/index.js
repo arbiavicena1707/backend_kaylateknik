@@ -30,8 +30,21 @@ app.use('/api/barang', barangRoutes);
 app.use('/api/nota', notaRoutes);
 app.use('/api/laporan', laporanRoutes);
 
+let dbError = null;
+
 // Health check
 app.get('/api/health', (req, res) => {
+  if (dbError) {
+    return res.status(500).json({
+      status: 'error',
+      app: 'Aplikasi Nota & Surat Penawaran (Mikayla Teknik)',
+      database: dbType,
+      database_error: dbError,
+      tips: 'Periksa variabel DB_USER, DB_NAME, DB_PASSWORD di cPanel atau file .env.',
+      time: new Date().toISOString()
+    });
+  }
+
   res.json({
     status: 'ok',
     app: 'Aplikasi Nota & Surat Penawaran (Mikayla Teknik)',
@@ -52,16 +65,19 @@ app.use((err, req, res, next) => {
 async function start() {
   try {
     await initDb();
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`=======================================================`);
-      console.log(`Backend Nota & Penawaran berjalan di port ${PORT}`);
-      console.log(`http://localhost:${PORT}`);
-      console.log(`=======================================================`);
-    });
+    console.log('[Server] Database berhasil diinisialisasi.');
   } catch (err) {
-    console.error('Gagal menjalankan server:', err);
-    process.exit(1);
+    dbError = err.message || String(err);
+    console.error('[Server Error] Gagal inisialisasi database:', dbError);
   }
+
+  // Server tetap berjalan agar TIDAK error 503 di cPanel Passenger
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`=======================================================`);
+    console.log(`Backend Nota & Penawaran berjalan di port ${PORT}`);
+    console.log(`http://localhost:${PORT}`);
+    console.log(`=======================================================`);
+  });
 }
 
 start();

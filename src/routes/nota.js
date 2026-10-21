@@ -29,7 +29,7 @@ async function generateNextNomorSurat(formatTemplate) {
   return { nomor_surat: nomorStr, nomor_urut: nextUrut };
 }
 
-function calculateTotals(items, pakai_ppn, tarif_ppn, harga_include_ppn) {
+function calculateTotals(items, pakai_ppn, tarif_ppn, harga_include_ppn, pakai_dp, persen_dp) {
   let subtotal = 0;
   const processedItems = items.map(item => {
     const qty = Number(item.qty) || 0;
@@ -60,11 +60,23 @@ function calculateTotals(items, pakai_ppn, tarif_ppn, harga_include_ppn) {
     }
   }
 
+  // DP (Down Payment) calculation
+  let nilai_dp = 0;
+  let sisa_pembayaran = grand_total;
+  const dpPercent = Number(persen_dp) || 0;
+
+  if (pakai_dp && dpPercent > 0) {
+    nilai_dp = Math.round(grand_total * (dpPercent / 100));
+    sisa_pembayaran = grand_total - nilai_dp;
+  }
+
   return {
     items: processedItems,
     subtotal,
     nilai_ppn,
-    grand_total
+    grand_total,
+    nilai_dp,
+    sisa_pembayaran
   };
 }
 
@@ -143,6 +155,7 @@ router.post('/', authenticateToken, async (req, res) => {
       penerima_nama, penerima_alamat, perihal,
       kalimat_pembuka, keterangan, kalimat_penutup,
       pakai_ppn, tarif_ppn, harga_include_ppn,
+      pakai_dp, persen_dp,
       status, items
     } = req.body;
 
@@ -168,7 +181,10 @@ router.post('/', authenticateToken, async (req, res) => {
     const isInclude = harga_include_ppn !== undefined ? (harga_include_ppn ? 1 : 0) : 0;
     const ratePpn = tarif_ppn !== undefined ? Number(tarif_ppn) : (settings ? settings.tarif_ppn_default : 11.0);
 
-    const calculated = calculateTotals(items, isPakaiPpn, ratePpn, isInclude);
+    const isPakaiDp = pakai_dp !== undefined ? (pakai_dp ? 1 : 0) : 0;
+    const persenDpVal = persen_dp !== undefined ? Number(persen_dp) : 0;
+
+    const calculated = calculateTotals(items, isPakaiPpn, ratePpn, isInclude, isPakaiDp, persenDpVal);
 
     const keteranganStr = typeof keterangan === 'object' ? JSON.stringify(keterangan) : (keterangan || '[]');
 
@@ -178,8 +194,10 @@ router.post('/', authenticateToken, async (req, res) => {
         penerima_nama, penerima_alamat, perihal,
         kalimat_pembuka, keterangan, kalimat_penutup,
         pakai_ppn, tarif_ppn, harga_include_ppn,
-        subtotal, nilai_ppn, grand_total, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        subtotal, nilai_ppn, grand_total,
+        pakai_dp, persen_dp, nilai_dp, sisa_pembayaran,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       finalNomorSurat,
       finalNomorUrut || null,
@@ -200,6 +218,10 @@ router.post('/', authenticateToken, async (req, res) => {
       calculated.subtotal,
       calculated.nilai_ppn,
       calculated.grand_total,
+      isPakaiDp,
+      persenDpVal,
+      calculated.nilai_dp,
+      calculated.sisa_pembayaran,
       status || 'Draft'
     ]);
 
@@ -243,6 +265,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       penerima_nama, penerima_alamat, perihal,
       kalimat_pembuka, keterangan, kalimat_penutup,
       pakai_ppn, tarif_ppn, harga_include_ppn,
+      pakai_dp, persen_dp,
       status, items
     } = req.body;
 
@@ -259,7 +282,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const isInclude = harga_include_ppn !== undefined ? (harga_include_ppn ? 1 : 0) : existing.harga_include_ppn;
     const ratePpn = tarif_ppn !== undefined ? Number(tarif_ppn) : existing.tarif_ppn;
 
-    const calculated = calculateTotals(items, isPakaiPpn, ratePpn, isInclude);
+    const isPakaiDp = pakai_dp !== undefined ? (pakai_dp ? 1 : 0) : (existing.pakai_dp || 0);
+    const persenDpVal = persen_dp !== undefined ? Number(persen_dp) : (existing.persen_dp || 0);
+
+    const calculated = calculateTotals(items, isPakaiPpn, ratePpn, isInclude, isPakaiDp, persenDpVal);
     const keteranganStr = typeof keterangan === 'object' ? JSON.stringify(keterangan) : (keterangan || existing.keterangan);
 
     await db.runAsync(`
@@ -268,7 +294,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
         penerima_nama = ?, penerima_alamat = ?, perihal = ?,
         kalimat_pembuka = ?, keterangan = ?, kalimat_penutup = ?,
         pakai_ppn = ?, tarif_ppn = ?, harga_include_ppn = ?,
-        subtotal = ?, nilai_ppn = ?, grand_total = ?, status = ?
+        subtotal = ?, nilai_ppn = ?, grand_total = ?,
+        pakai_dp = ?, persen_dp = ?, nilai_dp = ?, sisa_pembayaran = ?,
+        status = ?
       WHERE id = ?
     `, [
       nomor_surat || existing.nomor_surat,
@@ -289,6 +317,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
       calculated.subtotal,
       calculated.nilai_ppn,
       calculated.grand_total,
+      isPakaiDp,
+      persenDpVal,
+      calculated.nilai_dp,
+      calculated.sisa_pembayaran,
       status || existing.status,
       req.params.id
     ]);
@@ -343,8 +375,10 @@ router.post('/:id/duplikat', authenticateToken, async (req, res) => {
         penerima_nama, penerima_alamat, perihal,
         kalimat_pembuka, keterangan, kalimat_penutup,
         pakai_ppn, tarif_ppn, harga_include_ppn,
-        subtotal, nilai_ppn, grand_total, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Draft')
+        subtotal, nilai_ppn, grand_total,
+        pakai_dp, persen_dp, nilai_dp, sisa_pembayaran,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Draft')
     `, [
       nextNomor.nomor_surat,
       nextNomor.nomor_urut,
@@ -364,7 +398,11 @@ router.post('/:id/duplikat', authenticateToken, async (req, res) => {
       original.harga_include_ppn,
       original.subtotal,
       original.nilai_ppn,
-      original.grand_total
+      original.grand_total,
+      original.pakai_dp || 0,
+      original.persen_dp || 0,
+      original.nilai_dp || 0,
+      original.sisa_pembayaran || 0
     ]);
 
     const newNotaId = insertResult.lastID;
